@@ -7,21 +7,25 @@ import (
 	"github.com/dslipak/pdf"
 )
 
-type File struct {
+type PdfReader struct {
 	reader *pdf.Reader
+}
+
+type File struct {
+	Pages []Page
 }
 
 type Page struct {
 	Content string
 }
 
-func NewEncryptedReader(path string, password string) (*File, error) {
+func NewEncryptedReader(path string, password string) (*PdfReader, error) {
 	r, err := openEncrypted(path, password)
 	if err != nil {
 		return nil, err
 	}
 
-	return &File{
+	return &PdfReader{
 		reader: r,
 	}, nil
 }
@@ -48,7 +52,7 @@ func openEncrypted(path string, password string) (*pdf.Reader, error) {
 	return r, nil
 }
 
-func (pdf File) ReadPages() ([]Page, error) {
+func (pdf PdfReader) ReadFile() (*File, error) {
 	pages := make([]Page, 0)
 
 	for i := 0; i < pdf.reader.NumPage(); i++ {
@@ -64,10 +68,10 @@ func (pdf File) ReadPages() ([]Page, error) {
 		pages = append(pages, *p)
 	}
 
-	return pages, nil
+	return &File{Pages: pages}, nil
 }
 
-func (pdf File) ReadPage(i int) (*Page, error) {
+func (pdf PdfReader) ReadPage(i int) (*Page, error) {
 	p := pdf.reader.Page(i + 1)
 	if p.V.IsNull() {
 		return &Page{Content: ""}, nil
