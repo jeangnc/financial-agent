@@ -4,5 +4,8 @@ import (
 	"github.com/jeangnc/financial-agent/pdf"
 )
 
-func ParseFile(p pdf.File) {
+type T map[string]string
+
+func ParseFile(p pdf.File) []T {
+	return []T{}
 }
