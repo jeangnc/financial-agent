@@ -20,11 +20,13 @@ func ParseFile(f pdf.File) []T {
 	var result = make([]T, 0)
 
 	for _, p := range f.Pages {
-		for _, m := range matchAll(TRANSACTION_REGEXP, p.Content) {
-			m2, _ := match(INSTALLMENT_REGEXP, m["description"])
+		expr := regexp.MustCompile(TRANSACTION_REGEXP)
+		for _, m := range matchAll(expr, p.Content) {
+			expr = regexp.MustCompile(INSTALLMENT_REGEXP)
+			m2, _ := match(expr, m["description"])
 
 			if m2 != nil {
-				m["description"] = strings.Trim(regexp.MustCompile(INSTALLMENT_REGEXP).ReplaceAllString(m["description"], ""), " ")
+				m["description"] = strings.Trim(expr.ReplaceAllString(m["description"], ""), " ")
 				m["current_installment"] = m2["current"]
 				m["total_installments"] = m2["total"]
 			}
@@ -36,24 +38,23 @@ func ParseFile(f pdf.File) []T {
 	return result
 }
 
-func match(pattern string, text string) (T, error) {
-	matches := matchAll(pattern, text)
+func match(expr *regexp.Regexp, text string) (T, error) {
+	matches := matchAll(expr, text)
 
 	if len(matches) == 0 {
 		return nil, nil
 	}
 
 	if len(matches) > 1 {
-		return nil, fmt.Errorf("multiple matches for the pattern: %s", pattern)
+		return nil, fmt.Errorf("multiple matches for the pattern: %s", expr)
 	}
 
 	return matches[0], nil
 }
 
-func matchAll(pattern string, text string) []T {
+func matchAll(expr *regexp.Regexp, text string) []T {
 	result := make([]T, 0)
 
-	var expr = regexp.MustCompile(pattern)
 	for _, m := range expr.FindAllStringSubmatch(text, -1) {
 		t := T{}
 
