@@ -17,7 +17,7 @@ func TestParseFile(t *testing.T) {
 			result: []T{
 				T{
 					"date":                "01 Jan",
-					"description":         "Transaction 1 (1/2)",
+					"description":         "Transaction 1",
 					"amount":              "R$ 10,10",
 					"current_installment": "1",
 					"total_installments":  "2",

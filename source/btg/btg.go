@@ -3,6 +3,7 @@ package btg
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/jeangnc/financial-agent/pdf"
 )
@@ -23,6 +24,7 @@ func ParseFile(f pdf.File) []T {
 			m2, _ := match(INSTALLMENT_REGEXP, m["description"])
 
 			if m2 != nil {
+				m["description"] = strings.Trim(regexp.MustCompile(INSTALLMENT_REGEXP).ReplaceAllString(m["description"], ""), " ")
 				m["current_installment"] = m2["current"]
 				m["total_installments"] = m2["total"]
 			}
