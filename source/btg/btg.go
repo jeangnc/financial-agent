@@ -1,6 +1,7 @@
 package btg
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/jeangnc/financial-agent/pdf"
@@ -19,12 +20,32 @@ func ParseFile(f pdf.File) []T {
 
 	for _, p := range f.Pages {
 		for _, m := range matchAll(TRANSACTION_REGEXP, p.Content) {
+			m2, _ := match(INSTALLMENT_REGEXP, m["description"])
+
+			if m2 != nil {
+				m["current_installment"] = m2["current"]
+				m["total_installments"] = m2["total"]
+			}
 
 			result = append(result, m)
 		}
 	}
 
 	return result
+}
+
+func match(pattern string, text string) (T, error) {
+	matches := matchAll(pattern, text)
+
+	if len(matches) == 0 {
+		return nil, nil
+	}
+
+	if len(matches) > 1 {
+		return nil, fmt.Errorf("multiple matches for the pattern: %s", pattern)
+	}
+
+	return matches[0], nil
 }
 
 func matchAll(pattern string, text string) []T {
