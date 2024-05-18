@@ -18,7 +18,8 @@ func ParseFile(f pdf.File) []T {
 	var result = make([]T, 0)
 
 	for _, p := range f.Pages {
-		for _, m := range runRegexp(TRANSACTION_REGEXP, p.Content) {
+		for _, m := range matchAll(TRANSACTION_REGEXP, p.Content) {
+
 			result = append(result, m)
 		}
 	}
@@ -26,7 +27,7 @@ func ParseFile(f pdf.File) []T {
 	return result
 }
 
-func runRegexp(pattern string, text string) []T {
+func matchAll(pattern string, text string) []T {
 	result := make([]T, 0)
 
 	var expr = regexp.MustCompile(pattern)
