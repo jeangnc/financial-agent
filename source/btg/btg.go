@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jeangnc/financial-agent/currency"
 	"github.com/jeangnc/financial-agent/date"
 	"github.com/jeangnc/financial-agent/pdf"
 	"github.com/jeangnc/financial-agent/regexp"
@@ -37,7 +38,7 @@ func ParseFile(f pdf.File) ([]types.Transaction, error) {
 }
 
 func buildTransaction(match regexp.RegexpMatch) (*types.Transaction, error) {
-	amount, err := parseBrlCurrency(match["amount"])
+	amount, err := currency.ParseBrl(match["amount"])
 	if err != nil {
 		return nil, err
 	}
@@ -71,11 +72,4 @@ func extractInstallements(description string) (string, int64, int64) {
 	}
 
 	return description, 1, 1
-}
-
-func parseBrlCurrency(amountStr string) (float64, error) {
-	amountStr = strings.ReplaceAll(amountStr, "R$", "")
-	amountStr = strings.ReplaceAll(amountStr, ",", ".")
-	amountStr = strings.TrimSpace(amountStr)
-	return strconv.ParseFloat(amountStr, 64)
 }
