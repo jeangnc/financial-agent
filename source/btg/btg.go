@@ -20,26 +20,26 @@ const INSTALLMENT_REGEXP = `\((?<current>\d+)\/(?<total>\d+)\)$`
 func ParseFile(f pdf.File) ([]types.Transaction, error) {
 	var result = make([]types.Transaction, 0)
 
-	for _, p := range f.Pages {
-		for _, m := range regexp.MatchAll(TRANSACTION_REGEXP, p.Content) {
-			amount, err := parseCurrency(m["amount"])
+	for _, page := range f.Pages {
+		for _, match := range regexp.MatchAll(TRANSACTION_REGEXP, page.Content) {
+			amount, err := parseCurrency(match["amount"])
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert amount: %s", err)
 			}
 
 			t := types.Transaction{
-				Description:        m["description"],
+				Description:        match["description"],
 				Amount:             amount,
 				Date:               time.Date(2024, 1, 1, 0, 0, 0, 0, time.Local),
 				CurrentInstallment: 1,
 				TotalInstallments:  1,
 			}
 
-			m2, _ := regexp.Match(INSTALLMENT_REGEXP, t.Description)
+			installmentMatch, _ := regexp.Match(INSTALLMENT_REGEXP, t.Description)
 
-			if m2 != nil {
-				currentInstallment, _ := strconv.ParseInt(m2["current"], 10, 64)
-				totalInstallments, _ := strconv.ParseInt(m2["total"], 10, 64)
+			if installmentMatch != nil {
+				currentInstallment, _ := strconv.ParseInt(installmentMatch["current"], 10, 64)
+				totalInstallments, _ := strconv.ParseInt(installmentMatch["total"], 10, 64)
 
 				t.Description = strings.TrimSpace(regexp.Remove(INSTALLMENT_REGEXP, t.Description))
 				t.CurrentInstallment = currentInstallment
