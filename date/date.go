@@ -6,8 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"regexp"
+	"github.com/jeangnc/financial-agent/regexp"
 )
+
+const REGEXP = `(?<day>[0-9]{2}) (?<month>[a-zA-Z]{3})`
 
 var months = map[string]int{
 	"Jan": 1,
@@ -25,16 +27,18 @@ var months = map[string]int{
 }
 
 func ParseBrlDate(dateStr string) (time.Time, error) {
+	m, err := regexp.Match(REGEXP, dateStr)
+	if err != nil {
+		return time.Now(), err
+	}
 
-	var nonAlpha = regexp.MustCompile(`\d`)
-	monthString := strings.TrimSpace(nonAlpha.ReplaceAllString(dateStr, ""))
+	monthString := strings.TrimSpace(m["month"])
 	month, ok := months[monthString]
 	if !ok {
 		return time.Now(), fmt.Errorf("failed to convert month: %s", monthString)
 	}
 
-	var nonNumeric = regexp.MustCompile(`[a-zA-Z ]`)
-	dayString := strings.TrimSpace(nonNumeric.ReplaceAllString(dateStr, ""))
+	dayString := strings.TrimSpace(m["day"])
 	day, err := strconv.ParseInt(dayString, 10, 64)
 	if err != nil {
 		return time.Now(), err
