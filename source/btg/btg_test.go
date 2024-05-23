@@ -25,7 +25,7 @@ func TestParseFile(t *testing.T) {
 					TotalInstallments:  2,
 				},
 				types.Transaction{
-					Date:               time.Date(2024, 1, 1, 0, 0, 0, 0, time.Local),
+					Date:               time.Date(2024, 4, 1, 0, 0, 0, 0, time.Local),
 					Description:        "Transaction 2",
 					Amount:             0.98,
 					CurrentInstallment: 1,
