@@ -37,34 +37,39 @@ func ParseFile(f pdf.File) ([]types.Transaction, error) {
 }
 
 func buildTransaction(match regexp.RegexpMatch) (*types.Transaction, error) {
-	amount, err := parseCurrency(match["amount"])
+	amount, err := parseBrlCurrency(match["amount"])
 	if err != nil {
 		return nil, err
 	}
 
+	description, currentInstallment, totalInstallments := extractInstallements(match["description"])
+
 	t := types.Transaction{
-		Description:        match["description"],
+		Description:        description,
 		Amount:             amount,
 		Date:               time.Date(2024, 1, 1, 0, 0, 0, 0, time.Local),
-		CurrentInstallment: 1,
-		TotalInstallments:  1,
-	}
-
-	installmentMatch, _ := regexp.Match(INSTALLMENT_REGEXP, t.Description)
-
-	if installmentMatch != nil {
-		currentInstallment, _ := strconv.ParseInt(installmentMatch["current"], 10, 64)
-		totalInstallments, _ := strconv.ParseInt(installmentMatch["total"], 10, 64)
-
-		t.Description = strings.TrimSpace(regexp.Remove(INSTALLMENT_REGEXP, t.Description))
-		t.CurrentInstallment = currentInstallment
-		t.TotalInstallments = totalInstallments
+		CurrentInstallment: currentInstallment,
+		TotalInstallments:  totalInstallments,
 	}
 
 	return &t, nil
 }
 
-func parseCurrency(amountStr string) (float64, error) {
+func extractInstallements(description string) (string, int64, int64) {
+	installmentMatch, _ := regexp.Match(INSTALLMENT_REGEXP, description)
+
+	if installmentMatch != nil {
+		current, _ := strconv.ParseInt(installmentMatch["current"], 10, 64)
+		total, _ := strconv.ParseInt(installmentMatch["total"], 10, 64)
+
+		newDescription := strings.TrimSpace(regexp.Remove(INSTALLMENT_REGEXP, description))
+		return newDescription, current, total
+	}
+
+	return description, 1, 1
+}
+
+func parseBrlCurrency(amountStr string) (float64, error) {
 	amountStr = strings.ReplaceAll(amountStr, "R$", "")
 	amountStr = strings.ReplaceAll(amountStr, ",", ".")
 	amountStr = strings.TrimSpace(amountStr)
