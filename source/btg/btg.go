@@ -42,11 +42,16 @@ func buildTransaction(match regexp.RegexpMatch) (*types.Transaction, error) {
 		return nil, err
 	}
 
+	date, err := parseBrlDate(match["date"])
+	if err != nil {
+		return nil, err
+	}
+
 	description, currentInstallment, totalInstallments := extractInstallements(match["description"])
 	t := types.Transaction{
 		Description:        description,
 		Amount:             amount,
-		Date:               time.Date(2024, 1, 1, 0, 0, 0, 0, time.Local),
+		Date:               date,
 		CurrentInstallment: currentInstallment,
 		TotalInstallments:  totalInstallments,
 	}
@@ -66,6 +71,10 @@ func extractInstallements(description string) (string, int64, int64) {
 	}
 
 	return description, 1, 1
+}
+
+func parseBrlDate(dateStr string) (time.Time, error) {
+	return time.Date(2024, 1, 1, 0, 0, 0, 0, time.Local), nil
 }
 
 func parseBrlCurrency(amountStr string) (float64, error) {
