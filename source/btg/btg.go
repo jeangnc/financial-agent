@@ -43,7 +43,7 @@ func buildTransaction(match regexp.RegexpMatch) (*types.Transaction, error) {
 		return nil, err
 	}
 
-	date, err := date.ParseBrlDate(match["date"])
+	date, err := date.Parse(match["date"])
 	if err != nil {
 		return nil, err
 	}

@@ -26,7 +26,7 @@ var months = map[string]int{
 	"Dez": 12,
 }
 
-func ParseBrlDate(dateStr string) (time.Time, error) {
+func Parse(dateStr string) (time.Time, error) {
 	m, err := regexp.Match(REGEXP, dateStr)
 	if err != nil {
 		return time.Now(), err
