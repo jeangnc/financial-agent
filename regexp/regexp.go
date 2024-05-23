@@ -7,11 +7,6 @@ import (
 
 type RegexpMatch map[string]string
 
-func Remove(pattern string, s string) string {
-	expr := regexp.MustCompile(pattern)
-	return expr.ReplaceAllString(s, "")
-}
-
 func Match(pattern string, text string) (RegexpMatch, error) {
 	matches := MatchAll(pattern, text)
 
@@ -43,4 +38,9 @@ func MatchAll(pattern string, text string) []RegexpMatch {
 	}
 
 	return result
+}
+
+func Remove(pattern string, s string) string {
+	expr := regexp.MustCompile(pattern)
+	return expr.ReplaceAllString(s, "")
 }
