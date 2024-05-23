@@ -28,6 +28,9 @@ func ParseFile(f pdf.File) []types.Transaction {
 				m["description"] = strings.Trim(expr.ReplaceAllString(m["description"], ""), " ")
 				m["current_installment"] = m2["current"]
 				m["total_installments"] = m2["total"]
+			} else {
+				m["current_installment"] = "1"
+				m["total_installments"] = "1"
 			}
 
 			result = append(result, m)
