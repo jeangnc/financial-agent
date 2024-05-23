@@ -38,8 +38,7 @@ func ParseBrlDate(dateStr string) (time.Time, error) {
 		return time.Now(), fmt.Errorf("failed to convert month: %s", monthString)
 	}
 
-	dayString := strings.TrimSpace(m["day"])
-	day, err := strconv.ParseInt(dayString, 10, 64)
+	day, err := strconv.ParseInt(m["day"], 10, 64)
 	if err != nil {
 		return time.Now(), err
 	}
