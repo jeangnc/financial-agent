@@ -24,12 +24,12 @@ func ParseFile(f pdf.File) ([]types.Transaction, error) {
 
 	for _, page := range f.Pages {
 		for _, match := range regexp.MatchAll(TRANSACTION_REGEXP, page.Content) {
-			t, err := buildTransaction(match)
+			transaction, err := buildTransaction(match)
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert amount: %s", err)
 			}
 
-			result = append(result, *t)
+			result = append(result, *transaction)
 		}
 	}
 
@@ -43,7 +43,6 @@ func buildTransaction(match regexp.RegexpMatch) (*types.Transaction, error) {
 	}
 
 	description, currentInstallment, totalInstallments := extractInstallements(match["description"])
-
 	t := types.Transaction{
 		Description:        description,
 		Amount:             amount,
