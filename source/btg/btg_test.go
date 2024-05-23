@@ -3,6 +3,7 @@ package btg
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/jeangnc/financial-agent/pdf"
 	"github.com/jeangnc/financial-agent/types"
@@ -17,18 +18,18 @@ func TestParseFile(t *testing.T) {
 			input: "01 Jan Transaction 1 (1/2) R$ 10,10 01 Abr Transaction 2 R$ 0,98",
 			result: []types.Transaction{
 				types.Transaction{
-					"date":                "01 Jan",
-					"description":         "Transaction 1",
-					"amount":              "R$ 10,10",
-					"current_installment": "1",
-					"total_installments":  "2",
+					Date:               time.Date(2024, 1, 1, 0, 0, 0, 0, time.Local),
+					Description:        "Transaction 1",
+					Amount:             10.10,
+					CurrentInstallment: 1,
+					TotalInstallments:  2,
 				},
 				types.Transaction{
-					"date":                "01 Abr",
-					"description":         "Transaction 2",
-					"amount":              "R$ 0,98",
-					"current_installment": "1",
-					"total_installments":  "1",
+					Date:               time.Date(2024, 1, 1, 0, 0, 0, 0, time.Local),
+					Description:        "Transaction 2",
+					Amount:             0.98,
+					CurrentInstallment: 1,
+					TotalInstallments:  1,
 				},
 			},
 		},
@@ -43,10 +44,10 @@ func TestParseFile(t *testing.T) {
 					pdf.Page{Content: test.input},
 				},
 			}
-			transactions := ParseFile(f)
+			transactions, _ := ParseFile(f)
 
 			if !reflect.DeepEqual(transactions, test.result) {
-				t.Fatalf("returned %q; expected %q", transactions, test.result)
+				t.Fatalf("returned %#v; expected %#v", transactions, test.result)
 			}
 		})
 	}

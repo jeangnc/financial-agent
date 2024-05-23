@@ -3,7 +3,9 @@ package btg
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jeangnc/financial-agent/pdf"
 	"github.com/jeangnc/financial-agent/types"
@@ -15,32 +17,54 @@ const DESCRIPTION_REGEXP = `(?<description>([^R]|R[^$])*)`
 const TRANSACTION_REGEXP = `(` + DATE_REGEXP + `\W+` + DESCRIPTION_REGEXP + `\W+` + AMOUNT_REGEXP + `)`
 const INSTALLMENT_REGEXP = `\((?<current>\d+)\/(?<total>\d+)\)$`
 
-func ParseFile(f pdf.File) []types.Transaction {
+type RegexpMatch map[string]string
+
+func ParseFile(f pdf.File) ([]types.Transaction, error) {
 	var result = make([]types.Transaction, 0)
 
 	for _, p := range f.Pages {
 		expr := regexp.MustCompile(TRANSACTION_REGEXP)
 		for _, m := range matchAll(expr, p.Content) {
-			expr = regexp.MustCompile(INSTALLMENT_REGEXP)
-			m2, _ := match(expr, m["description"])
-
-			if m2 != nil {
-				m["description"] = strings.Trim(expr.ReplaceAllString(m["description"], ""), " ")
-				m["current_installment"] = m2["current"]
-				m["total_installments"] = m2["total"]
-			} else {
-				m["current_installment"] = "1"
-				m["total_installments"] = "1"
+			amount, err := parseCurrency(m["amount"])
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert amount: %s", err)
 			}
 
-			result = append(result, m)
+			t := types.Transaction{
+				Description:        m["description"],
+				Amount:             amount,
+				Date:               time.Date(2024, 1, 1, 0, 0, 0, 0, time.Local),
+				CurrentInstallment: 1,
+				TotalInstallments:  1,
+			}
+
+			expr = regexp.MustCompile(INSTALLMENT_REGEXP)
+			m2, _ := match(expr, t.Description)
+
+			if m2 != nil {
+				currentInstallment, _ := strconv.ParseInt(m2["current"], 10, 64)
+				totalInstallments, _ := strconv.ParseInt(m2["total"], 10, 64)
+
+				t.Description = strings.TrimSpace(expr.ReplaceAllString(t.Description, ""))
+				t.CurrentInstallment = currentInstallment
+				t.TotalInstallments = totalInstallments
+			}
+
+			result = append(result, t)
 		}
 	}
 
-	return result
+	return result, nil
 }
 
-func match(expr *regexp.Regexp, text string) (types.Transaction, error) {
+func parseCurrency(amountStr string) (float64, error) {
+	amountStr = strings.ReplaceAll(amountStr, "R$", "")
+	amountStr = strings.ReplaceAll(amountStr, ",", ".")
+	amountStr = strings.TrimSpace(amountStr)
+	return strconv.ParseFloat(amountStr, 64)
+}
+
+func match(expr *regexp.Regexp, text string) (RegexpMatch, error) {
 	matches := matchAll(expr, text)
 
 	if len(matches) == 0 {
@@ -54,11 +78,11 @@ func match(expr *regexp.Regexp, text string) (types.Transaction, error) {
 	return matches[0], nil
 }
 
-func matchAll(expr *regexp.Regexp, text string) []types.Transaction {
-	result := make([]types.Transaction, 0)
+func matchAll(expr *regexp.Regexp, text string) []RegexpMatch {
+	result := make([]RegexpMatch, 0)
 
 	for _, m := range expr.FindAllStringSubmatch(text, -1) {
-		t := types.Transaction{}
+		t := RegexpMatch{}
 
 		for i, name := range expr.SubexpNames() {
 			if name != "" {
