@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jeangnc/financial-agent/pdf"
+	"github.com/jeangnc/financial-agent/types"
 )
 
 const DATE_REGEXP = `(?<date>[0-9]{2} [a-zA-Z]{3})`
@@ -14,10 +15,8 @@ const DESCRIPTION_REGEXP = `(?<description>([^R]|R[^$])*)`
 const TRANSACTION_REGEXP = `(` + DATE_REGEXP + `\W+` + DESCRIPTION_REGEXP + `\W+` + AMOUNT_REGEXP + `)`
 const INSTALLMENT_REGEXP = `\((?<current>\d+)\/(?<total>\d+)\)$`
 
-type T map[string]string
-
-func ParseFile(f pdf.File) []T {
-	var result = make([]T, 0)
+func ParseFile(f pdf.File) []types.Transaction {
+	var result = make([]types.Transaction, 0)
 
 	for _, p := range f.Pages {
 		expr := regexp.MustCompile(TRANSACTION_REGEXP)
@@ -38,7 +37,7 @@ func ParseFile(f pdf.File) []T {
 	return result
 }
 
-func match(expr *regexp.Regexp, text string) (T, error) {
+func match(expr *regexp.Regexp, text string) (types.Transaction, error) {
 	matches := matchAll(expr, text)
 
 	if len(matches) == 0 {
@@ -52,11 +51,11 @@ func match(expr *regexp.Regexp, text string) (T, error) {
 	return matches[0], nil
 }
 
-func matchAll(expr *regexp.Regexp, text string) []T {
-	result := make([]T, 0)
+func matchAll(expr *regexp.Regexp, text string) []types.Transaction {
+	result := make([]types.Transaction, 0)
 
 	for _, m := range expr.FindAllStringSubmatch(text, -1) {
-		t := T{}
+		t := types.Transaction{}
 
 		for i, name := range expr.SubexpNames() {
 			if name != "" {
