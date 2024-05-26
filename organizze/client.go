@@ -59,10 +59,10 @@ func NewClient(name string, email string, apiKey string) *Client {
 	}
 }
 
-func (c Client) Categories() (r []Category, err error) {
+func (c Client) Categories() ([]Category, error) {
 	res, err := c.request(http.MethodGet, "categories", nil, nil)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return parseResponse[[]Category](res)
