@@ -27,7 +27,7 @@ func ParseFile(f pdf.File) ([]types.Transaction, error) {
 		for _, match := range regexp.MatchAll(TRANSACTION_REGEXP, page.Content) {
 			transaction, err := buildTransaction(match)
 			if err != nil {
-				return nil, fmt.Errorf("failed to convert amount: %s", err)
+				return nil, err
 			}
 
 			result = append(result, *transaction)
@@ -40,15 +40,19 @@ func ParseFile(f pdf.File) ([]types.Transaction, error) {
 func buildTransaction(match regexp.RegexpMatch) (*types.Transaction, error) {
 	amount, err := currency.ParseBrl(match["amount"])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to convert amount: %s", err)
 	}
 
 	date, err := date.Parse(match["date"])
 	if err != nil {
+		return nil, fmt.Errorf("failed to convert date: %s", err)
+	}
+
+	description, currentInstallment, totalInstallments, err := extractInstallements(match["description"])
+	if err != nil {
 		return nil, err
 	}
 
-	description, currentInstallment, totalInstallments := extractInstallements(match["description"])
 	t := types.Transaction{
 		Description:        description,
 		Amount:             amount,
@@ -60,16 +64,23 @@ func buildTransaction(match regexp.RegexpMatch) (*types.Transaction, error) {
 	return &t, nil
 }
 
-func extractInstallements(description string) (string, int64, int64) {
+func extractInstallements(description string) (string, int64, int64, error) {
 	installmentMatch, _ := regexp.Match(INSTALLMENT_REGEXP, description)
 
 	if installmentMatch != nil {
-		current, _ := strconv.ParseInt(installmentMatch["current"], 10, 64)
-		total, _ := strconv.ParseInt(installmentMatch["total"], 10, 64)
+		current, err := strconv.ParseInt(installmentMatch["current"], 10, 64)
+		if err != nil {
+			return "", 0, 0, fmt.Errorf("failed to convert current installment: %s", err)
+		}
+
+		total, err := strconv.ParseInt(installmentMatch["total"], 10, 64)
+		if err != nil {
+			return "", 0, 0, fmt.Errorf("failed to convert total installments: %s", err)
+		}
 
 		newDescription := strings.TrimSpace(regexp.Remove(INSTALLMENT_REGEXP, description))
-		return newDescription, current, total
+		return newDescription, current, total, nil
 	}
 
-	return description, 1, 1
+	return description, 1, 1, nil
 }
