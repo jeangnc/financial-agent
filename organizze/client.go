@@ -7,48 +7,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 const BaseURL = "https://api.organizze.com.br/rest/v2"
 
-type (
-	Client struct {
-		name       string
-		email      string
-		apiKey     string
-		httpClient *http.Client
-	}
-
-	Category struct {
-		Id       int64  `json:"id"`
-		Archived bool   `json:"archived"`
-		ParentID int64  `json:"parent_id"`
-		Name     string `json:"name"`
-	}
-
-	Tag struct {
-		Name string `json:"name"`
-	}
-
-	InstallmentAttributes struct {
-		Periodicity string  `json:"periodicity"`
-		Total       float64 `json:"total"`
-	}
-
-	Transaction struct {
-		Id                    int64                  `json:"id",omitempty`
-		CreditCardId          int64                  `json:"credit_card_id"`
-		CreditCardInvoiceId   int64                  `json:"credit_card_invoice_id"`
-		Description           string                 `json:"description"`
-		Notes                 string                 `json:"notes"`
-		Date                  time.Time              `json:"date"`
-		AmountCents           float64                `json:"amount_cents"`
-		CategoryId            int64                  `json:"category_id"`
-		InstallmentAttributes *InstallmentAttributes `json:"installments_attributes"`
-		Tags                  []Tag                  `json:"tags"`
-	}
-)
+type Client struct {
+	name       string
+	email      string
+	apiKey     string
+	httpClient *http.Client
+}
 
 func NewClient(name string, email string, apiKey string) *Client {
 	return &Client{
