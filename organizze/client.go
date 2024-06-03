@@ -36,13 +36,68 @@ func (c Client) Categories() ([]Category, error) {
 	return parseResponse[[]Category](res)
 }
 
-func (c Client) CreateTransaction(t Transaction) error {
+func (c Client) Invoices(creditCardId int64) ([]InvoiceHeader, error) {
+	endpoint := fmt.Sprintf("credit_cards/%v/invoices", creditCardId)
+	res, err := c.request(http.MethodGet, endpoint, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[[]InvoiceHeader](res)
+}
+
+func (c Client) Invoice(creditCardId int64, invoiceId int64) (*Invoice, error) {
+	endpoint := fmt.Sprintf("credit_cards/%v/invoices/%v", creditCardId, invoiceId)
+	res, err := c.request(http.MethodGet, endpoint, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	i, err := parseResponse[Invoice](res)
+	return &i, err
+}
+
+func (c Client) CreateTransaction(t Transaction) (*Transaction, error) {
+	b, err := json.Marshal(t)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.request(http.MethodPost, "transactions", nil, b)
+	if err != nil {
+		return nil, err
+	}
+
+	t, err = parseResponse[Transaction](res)
+	if err != nil {
+		return nil, err
+	}
+
+	return &t, nil
+}
+
+func (c Client) UpdateTransaction(t Transaction) error {
 	b, err := json.Marshal(t)
 	if err != nil {
 		return err
 	}
 
-	_, err = c.request(http.MethodPost, "transactions", nil, b)
+	endpoint := fmt.Sprintf("transactions/%v", t.Id)
+	res, err := c.request(http.MethodPut, endpoint, nil, b)
+	fmt.Println(res)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c Client) DeleteTransaction(t Transaction) error {
+	endpoint := fmt.Sprintf("transactions/%v", t.Id)
+	res, err := c.request(http.MethodDelete, endpoint, nil, nil)
+	fmt.Println(res)
+
 	if err != nil {
 		return err
 	}

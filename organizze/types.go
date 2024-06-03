@@ -1,6 +1,7 @@
 package organizze
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -20,13 +21,15 @@ type (
 		Name     string `json:"name"`
 	}
 
-	Tag struct {
-		Name string `json:"name"`
-	}
-
 	InstallmentAttributes struct {
 		Periodicity string  `json:"periodicity"`
 		Total       float64 `json:"total"`
+	}
+
+	TagString string
+
+	Tag struct {
+		Name string `json:"name"`
 	}
 
 	Transaction struct {
@@ -39,7 +42,7 @@ type (
 		AmountCents           float64                `json:"amount_cents"`
 		CategoryId            int64                  `json:"category_id"`
 		InstallmentAttributes *InstallmentAttributes `json:"installments_attributes"`
-		Tags                  []Tag                  `json:"tags"`
+		Tags                  TagString              `json:"tags"`
 	}
 
 	InvoiceHeader struct {
@@ -57,6 +60,29 @@ type (
 		Transactions []Transaction `json:"transactions"`
 	}
 )
+
+func (t TagString) MarshalJSON() ([]byte, error) {
+	tags := make([]Tag, 0, 0)
+	splits := strings.Split(string(t), ",")
+
+	for _, s := range splits {
+		tags = append(tags, Tag{Name: s})
+	}
+	return json.Marshal(tags)
+}
+
+/*(
+func (t *TagString) Tags() []Tag {
+	tags := make([]Tag, 0, 0)
+	splits := strings.Split(string(*t), ",")
+
+	for _, s := range splits {
+		tags = append(tags, Tag{Name: s})
+	}
+
+	return tags
+}
+*/
 
 func (d *Date) UnmarshalJSON(b []byte) (err error) {
 	s := strings.Trim(string(b), "\"")
