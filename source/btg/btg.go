@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jeangnc/financial-agent/currency"
-	"github.com/jeangnc/financial-agent/date"
 	"github.com/jeangnc/financial-agent/pdf"
 	"github.com/jeangnc/financial-agent/regexp"
 	"github.com/jeangnc/financial-agent/types"
@@ -30,12 +28,12 @@ func ParseFile(f pdf.File) ([]types.Transaction, error) {
 }
 
 func buildTransaction(match regexp.RegexpMatch) (*types.Transaction, error) {
-	amount, err := currency.ParseBrl(match["amount"])
+	amount, err := types.ParseBrl(match["amount"])
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert amount: %s", err)
 	}
 
-	date, err := date.Parse(match["date"])
+	date, err := types.Parse(match["date"])
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert date: %s", err)
 	}
